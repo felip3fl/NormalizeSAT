@@ -31,6 +31,9 @@ class PdfRenamer
         try
         {
             string companyName = ExtractCompanyName(pdfPath);
+            DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(pdfPath);
+
+            var newFileName = dateTimeCreateDoc?.ToString("yyyyMMddHHmm") + " " + companyName;
 
             if (string.IsNullOrWhiteSpace(companyName))
             {
@@ -40,13 +43,82 @@ class PdfRenamer
 
             Console.WriteLine($"Nome extraído: {companyName}");
 
-            string newPath = BuildNewPath(pdfPath, companyName);
+            string newPath = BuildNewPath(pdfPath, newFileName);
             RenameFile(pdfPath, newPath);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao processar o arquivo: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Extrai a data e hora do campo "Emissão" de um PDF.
+    /// Formato esperado na linha: "Número: XXXXX Série: XXX Emissão: DD/MM/YYYY HH:mm:ss - Via Consumidor"
+    /// </summary>
+    /// <param name="pdfPath">Caminho para o arquivo PDF</param>
+    /// <returns>DateTime com a data e hora de emissão, ou null se não encontrado</returns>
+    public static DateTime? ExtractEmissaoDateTime(string pdfPath)
+    {
+        using var document = PdfDocument.Open(pdfPath);
+
+        foreach (var page in document.GetPages())
+        {
+            var text = string.Join(" ", page.GetWords().Select(w => w.Text));
+
+            var result = ParseEmissao(text);
+            if (result.HasValue)
+                return result;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sobrecarga que recebe o stream do PDF em vez do caminho.
+    /// </summary>
+    public static DateTime? ExtractEmissaoDateTime(byte[] pdfBytes)
+    {
+        using var document = PdfDocument.Open(pdfBytes);
+
+        foreach (var page in document.GetPages())
+        {
+            var text = string.Join(" ", page.GetWords().Select(w => w.Text));
+
+            var result = ParseEmissao(text);
+            if (result.HasValue)
+                return result;
+        }
+
+        return null;
+    }
+
+    private static DateTime? ParseEmissao(string text)
+    {
+        // Regex captura: Emissão: DD/MM/YYYY HH:mm:ss
+        var regex = new Regex(
+            @"Emiss[aã]o:\s*(\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})",
+            RegexOptions.IgnoreCase
+        );
+
+        var match = regex.Match(text);
+
+        if (!match.Success)
+            return null;
+
+        var dateTimeString = match.Groups[1].Value.Trim();
+
+        if (DateTime.TryParseExact(
+                dateTimeString,
+                "dd/MM/yyyy HH:mm:ss",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var result))
+        {
+            return result;
+        }
+
+        return null;
     }
 
     /// <summary>
