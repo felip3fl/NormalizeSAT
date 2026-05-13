@@ -18,38 +18,56 @@ class PdfRenamer
         }
         else
         {
-            Console.Write("Informe o caminho do arquivo PDF: ");
+            Console.Write("Informe o caminho da pasta com PDF: ");
             pdfPath = Console.ReadLine()?.Trim().Trim('"') ?? "";
         }
 
-        if (!File.Exists(pdfPath))
+        if (!Path.Exists(pdfPath))
         {
-            Console.WriteLine($"Arquivo não encontrado: {pdfPath}");
+            Console.WriteLine($"Pasta não encontrada: {pdfPath}");
             return;
         }
 
         try
         {
-            string companyName = ExtractCompanyName(pdfPath);
-            DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(pdfPath);
 
-            var newFileName = dateTimeCreateDoc?.ToString("yyyyMMddHHmm") + " " + companyName;
-
-            if (string.IsNullOrWhiteSpace(companyName))
+            foreach (var file in Directory.GetFiles(pdfPath, "*.pdf"))
             {
-                Console.WriteLine("Não foi possível extrair o nome da empresa da primeira linha.");
-                return;
+                string companyName = ExtractCompanyName(file);
+                DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(file);
+
+                var newFileName = dateTimeCreateDoc?.ToString("yyyyMMdd HHmm") + " " + companyName;
+
+                if (string.IsNullOrWhiteSpace(companyName))
+                {
+                    Console.WriteLine("Não foi possível extrair o nome da empresa da primeira linha.");
+                    return;
+                }
+
+                Console.WriteLine($"Nome extraído: {companyName}");
+
+                string newPath = BuildNewPath(file, newFileName);
+                RenameFile(file, newPath);
             }
 
-            Console.WriteLine($"Nome extraído: {companyName}");
 
-            string newPath = BuildNewPath(pdfPath, newFileName);
-            RenameFile(pdfPath, newPath);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao processar o arquivo: {ex.Message}");
         }
+    }
+
+    public List<String> ListAllFileAddress(string mainFolderAddress)
+    {
+        var filePaths = new List<String>();
+
+        foreach (var file in Directory.GetFiles(mainFolderAddress, "*.pdf"))
+        {
+            filePaths.Add(file);
+        }
+
+        return filePaths;
     }
 
     /// <summary>
