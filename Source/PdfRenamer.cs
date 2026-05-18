@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -31,12 +32,12 @@ class PdfRenamer
         try
         {
 
-            foreach (var file in Directory.GetFiles(pdfPath, "*.pdf"))
+            foreach (var file in Directory.GetFiles(pdfPath, "DOCUMENTO*.pdf"))
             {
                 string companyName = ExtractCompanyName(file);
                 DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(file);
 
-                var newFileName = dateTimeCreateDoc?.ToString("yyyyMMdd HHmm") + " " + companyName;
+                var newFileName = dateTimeCreateDoc?.ToString("yyMMdd HHmm") + " " + ToTitleCase(companyName);
 
                 if (string.IsNullOrWhiteSpace(companyName))
                 {
@@ -58,16 +59,15 @@ class PdfRenamer
         }
     }
 
-    public List<String> ListAllFileAddress(string mainFolderAddress)
+    public static string ToTitleCase(string text)
     {
-        var filePaths = new List<String>();
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
 
-        foreach (var file in Directory.GetFiles(mainFolderAddress, "*.pdf"))
-        {
-            filePaths.Add(file);
-        }
-
-        return filePaths;
+        return string.Join(" ", text.Split(' ')
+            .Select(word => word.Length == 0
+                ? word
+                : char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 
     /// <summary>
