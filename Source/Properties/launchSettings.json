@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PdfRenamer": {
+      "commandName": "Project",
+      "commandLineArgs": "\"D:\\OneDrive\\Documents\\Auxiliar Danfe\""
+    }
+  }
+}
