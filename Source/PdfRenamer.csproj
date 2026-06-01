@@ -6,7 +6,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NormalizeSAT</AssemblyName>
+    <ApplicationIcon>android-chrome-256x256.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="android-chrome-256x256.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- PdfPig: biblioteca C# pura para leitura de PDF, sem dependências nativas -->
