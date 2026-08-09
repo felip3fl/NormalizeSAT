@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Graphics;
 
 class PdfRenamer
 {
@@ -31,31 +32,34 @@ class PdfRenamer
 
         try
         {
-
-            foreach (var file in Directory.GetFiles(pdfPath, "DOCUMENTO*.pdf"))
-            {
-                string companyName = ExtractCompanyName(file);
-                DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(file);
-
-                var newFileName = dateTimeCreateDoc?.ToString("yyMMdd HHmm") + " " + ToTitleCase(companyName);
-
-                if (string.IsNullOrWhiteSpace(companyName))
-                {
-                    Console.WriteLine("Não foi possível extrair o nome da empresa da primeira linha.");
-                    return;
-                }
-
-                Console.WriteLine($"Nome extraído: {companyName}");
-
-                string newPath = BuildNewPath(file, newFileName);
-                RenameFile(file, newPath);
-            }
-
-
+            processPdf(pdfPath, "DOCUMENTO");
+            processPdf(pdfPath, "Consulta");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao processar o arquivo: {ex.Message}");
+        }
+    }
+
+    public static void processPdf(string pdfPath, string preFixFileName)
+    {
+        foreach (var file in Directory.GetFiles(pdfPath, $"{preFixFileName}*.pdf"))
+        {
+            string companyName = ExtractCompanyName(file);
+            DateTime? dateTimeCreateDoc = ExtractEmissaoDateTime(file);
+
+            var newFileName = dateTimeCreateDoc?.ToString("yyMMdd HHmm") + " " + ToTitleCase(companyName);
+
+            if (string.IsNullOrWhiteSpace(companyName))
+            {
+                Console.WriteLine("Não foi possível extrair o nome da empresa da primeira linha.");
+                return;
+            }
+
+            Console.WriteLine($"Nome extraído: {companyName}");
+
+            string newPath = BuildNewPath(file, newFileName);
+            RenameFile(file, newPath);
         }
     }
 
